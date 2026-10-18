@@ -1,0 +1,6 @@
+; Not part of `dune runtest`: run with `dune exec exercises/simplify/check.exe`.
+(executable
+ (name check)
+ (libraries core contracts contracts_test)
+ (preprocess
+  (pps ppx_jane)))

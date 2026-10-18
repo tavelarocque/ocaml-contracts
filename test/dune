@@ -1,0 +1,8 @@
+(library
+ (name contracts_test)
+ (libraries core contracts)
+ (inline_tests
+  (deps
+   (glob_files data/*.csv)))
+ (preprocess
+  (pps ppx_jane)))

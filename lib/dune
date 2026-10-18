@@ -1,0 +1,6 @@
+(library
+ (name contracts)
+ (public_name contracts)
+ (libraries core)
+ (preprocess
+  (pps ppx_jane)))

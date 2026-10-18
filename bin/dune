@@ -1,0 +1,5 @@
+(executables
+ (names main check_export analyze touch structures greeks market_make markout check_hf)
+ (libraries core contracts)
+ (preprocess
+  (pps ppx_jane)))
