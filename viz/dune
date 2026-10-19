@@ -1,0 +1,7 @@
+; Writes the CSVs behind the project's charts: dune exec viz/viz_data.exe -- OUT_DIR
+; Synthetic inputs only (test/synthetic.ml, test/synthetic_hf.ml); nothing reads real data.
+(executable
+ (name viz_data)
+ (libraries core contracts contracts_test)
+ (preprocess
+  (pps ppx_jane)))

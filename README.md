@@ -2,6 +2,8 @@
 
 A financial contract language in OCaml that prices Kalshi's Bitcoin prediction markets from the probability distributions implied by Deribit's Bitcoin options. It's built on Peyton Jones, Eber and Seward's *Composing contracts* (ICFP 2000). Every contract is a tree of nine combinators, and three independent pricers value it, each checking the others. On top of that sit Greeks and hedging, an Avellaneda–Stoikov market maker for $0/$1 contracts, and a markout system that measures how informed real order flow is.
 
+![Delta of a Kalshi 'BTC above K' contract by strike and hours to close: a low hill a day out becomes a spike at the forward near the close](docs/img/delta_surface.png)
+
 ![Architecture: market data feeds distributions; the contract language and distributions feed three pricers; the pricers feed Greeks, the market maker and markouts](docs/architecture.svg)
 
 ## A taste of the language
@@ -43,6 +45,8 @@ Each bucket is a contract like:
 | `Replication` | Carr–Madan static replication from the digital curve P(K) and partial mean M(K) | exact for digitals |
 | `Lattice` | Rubinstein (1994) implied binomial tree | time: American options, touch contracts |
 
+![Density under the SVI smile, a lognormal at its at-the-money vol, and the smile narrowed to 80%](docs/img/density.png)
+
 Every pricer returns `Ok price` or a typed `Error` (a date past the model's horizon, a date already passed, a path-dependent contract on a one-date model), never a made-up number.
 
 ## Validation
@@ -61,6 +65,10 @@ Every pricer returns `Ok price` or a typed `Error` (a date past the model's hori
 
 The quoting rule is Avellaneda–Stoikov adapted to a $0/$1 payout. Quotes lean against inventory, the spread trades fill rate against edge, and an extra term widens quotes when the fair value is about to jump. All results below are on synthetic order flow.
 
+![Pin risk: each hedged path's P&L against where BTC finished, concentrated at the strike](docs/img/pin_risk.png)
+
+![Market-maker P&L against spread widening, for informed traders who see 1, 4 or 10 steps ahead](docs/img/market_maker.png)
+
 | Experiment | Result |
 | --- | --- |
 | Uninformed flow: P&L equals edge captured (a known-answer check) | gap −0.020 ± 0.024 |
@@ -72,6 +80,8 @@ The quoting rule is Avellaneda–Stoikov adapted to a $0/$1 payout. Quotes lean 
 ## Measuring real order flow
 
 A markout marks each trade's passive side against options-implied fair value seconds and minutes later. If takers know nothing, it stays at the half-spread. If they see where BTC is going, it falls. On a synthetic market with nine in ten takers seeing a minute ahead, the 60-second markout is −0.97 cents, with its 95% interval below zero. Uninformed takers leave it flat at +2.00. Real Kalshi trades and per-second BTC prices are backfilled weekly by a companion research project.
+
+![Passive-side markout by horizon for 0%, 50% and 90% informed takers, with 95% intervals](docs/img/markouts.png)
 
 Comparing Kalshi's real prices with the options is a pre-registered test in that project, sealed until 2026-11-30. The `Seal` module holds its window, and the analysis tools refuse to run inside it. Until then, every tool that touches real data either prices from the options alone or only counts rows.
 
@@ -85,6 +95,8 @@ dune build
 dune runtest                       # 80 expect and property tests; silence means they pass
 dune exec bin/main.exe             # price a toy ladder
 dune exec exercises/simplify/check.exe   # the simplifier against its 17 examples and 4 properties
+dune exec viz/viz_data.exe -- /tmp/viz   # the numbers behind the charts, from the library itself
+python3 tools/plots.py /tmp/viz docs/img # redraw the charts (needs matplotlib)
 ```
 
 The other tools in `bin/` (Greeks, structures, touch probabilities, the market maker on real smiles, markouts) read data exported by the companion research project, which isn't public.
@@ -115,6 +127,6 @@ Tave La Rocque, Integrated Engineering, University of British Columbia. Develope
 ## About this repository
 
 This is a public snapshot of a private working repository, published with `tools/publish_public.sh` (from commit
-f6b1547). History starts fresh here, and the Kalshi quotes in `test/data/contracts_sample.csv` are blank: they fall
+5a6730d). History starts fresh here, and the Kalshi quotes in `test/data/contracts_sample.csv` are blank: they fall
 inside the window of a pre-registered test in the companion research project, Implied Odds, which is sealed until
 2026-11-30. The tests use only that file's strikes, smiles and reference probabilities, so they run unchanged.
